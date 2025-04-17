@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Messenger Style</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Chat container */
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 90vh;
+            background-color: #fff;
+            display: none;
+            flex-direction: column;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Chat header */
+        #chatHeader {
+            background-color: #0084ff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Message area */
+        #messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #e5ddd5;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 20px;
+            max-width: 75%;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            background-color: #0084ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            background-color: #f0f0f0;
+            color: black;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Input container */
+        .input-container {
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #fff;
+        }
+
+        .input-field {
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            padding: 8px 12px;
+            background-color: #0084ff;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        button {
+            padding: 10px 16px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #006bbd;
+        }
+
+        /* Name input screen */
+        #nameInput {
+            text-align: center;
+        }
+
+        #nameInput input {
+            padding: 12px;
+            width: 80%;
+            max-width: 300px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        #nameInput button {
+            padding: 12px 30px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        #nameInput button:hover {
+            background-color: #006bbd;
+        }
+
+        .input-container + .input-container {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Name Input -->
+    <div id="nameInput">
+        <h2>Welcome! What's your name?</h2>
+        <input type="text" id="userName" placeholder="Enter your name">
+        <br>
+        <button onclick="startChat()">Start Chat</button>
+    </div>
+
+    <!-- Chat Box -->
+    <div id="chatbox" class="chat-container">
+        <div id="chatHeader"></div>
+        <div id="messages"></div>
+
+        <!-- URL Input Section -->
+        <div class="input-container">
+            <input type="url" id="urlInput" class="input-field" placeholder="Paste URL (optional)">
+        </div>
+
+        <!-- Message and File Input Section -->
+        <div class="input-container">
+            <input type="text" id="userInput" class="input-field" placeholder="Type a message...">
+            <label for="fileInput" class="file-label">📎 File</label>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let userName = '';
+
+        // Start chat with name
+        function startChat() {
+            userName = document.getElementById("userName").value.trim();
+            if (userName !== "") {
+                document.getElementById("nameInput").style.display = "none";
+                document.getElementById("chatbox").style.display = "flex";
+                document.getElementById("chatHeader").innerText = "Chat with AI - " + userName;
+            }
+        }
+
+        // Send message to backend
+        function sendMessage() {
+            let userInputField = document.getElementById("userInput");
+            let urlInputField = document.getElementById("urlInput");
+            let fileInputField = document.getElementById("fileInput");
+            let messagesContainer = document.getElementById("messages");
+
+            let userInput = userInputField.value.trim();
+            let urlInput = urlInputField.value.trim();
+            let fileInput = fileInputField.files[0];
+
+            if (userInput === "" && urlInput === "" && !fileInput) {
+                alert("Please type a message, paste a URL, or upload a file.");
+                return;
+            }
+
+            // Show user's message and/or URL
+            if (userInput !== "") addMessage(userInput, 'user-message');
+            if (urlInput !== "") addMessage(urlInput, 'user-message');
+
+            let formData = new FormData();
+            formData.append("query", userInput);
+            formData.append("url", urlInput);
+            if (fileInput) formData.append("file", fileInput);
+
+            // Fetch AI response
+            fetch('/get_response', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage(data.response, 'bot-message');
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    addMessage("An error occurred. Please try again.", 'bot-message');
+                });
+
+            // Clear inputs
+            userInputField.value = "";
+            urlInputField.value = "";
+            fileInputField.value = "";
+        }
+
+        // Append messages to chat
+        function addMessage(text, className) {
+            let messagesContainer = document.getElementById("messages");
+            let messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", className);
+            messageDiv.innerText = text;
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Auto-scroll chat
+        function scrollToBottom() {
+            let messagesContainer = document.getElementById("messages");
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+
+</body>
+
+</html>
