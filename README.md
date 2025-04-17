@@ -25,4 +25,7 @@ An intelligent chatbot built with **Flask**, powered by **Azure OpenAI’s GPT-4
 | Deployment   | Azure (App Service, Storage, etc.)    |
 
 ---
+<img width="1439" alt="Screenshot 2025-04-17 at 7 41 39 AM" src="https://github.com/user-attachments/assets/7b083a05-c41a-4d84-bd3d-41d6c9b8ee31" />
+<img width="1439" alt="Screenshot 2025-04-17 at 7 46 38 AM" src="https://github.com/user-attachments/assets/441ee2b3-bb0c-4007-8f2a-3ecff00882d1" />
+
 
